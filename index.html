@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Employee Search</title>
+</head>
+
+<body>
+    <form>
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" />
+        <button type="button" id="button1" onclick="searchEmployee()">Search</button>
+    </form>
+
+    <table id="results">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Designation</th>
+                <th>Salary</th>
+                <th>Roles</th>
+                <th>Age</th>
+            </tr>
+        </thead>
+        <tbody id="cbody"></tbody>
+        <div id="not-found" style="display: none;">Employee not found</div>
+    </table>
+    <button type="button" id="button2" onclick="fetchAllEmployees()">Fetch All Employees</button>
+    <script>
+        function searchEmployee() {
+            const name = document.getElementById("name").value;
+            fetch(`http://localhost:8000/api/find/employee`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ name }),
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    const results = document.querySelector("#results tbody");
+                    results.innerHTML = "";
+                    const tr = document.createElement("tr");
+                    const nameTd = document.createElement("td");
+                    const designationTd = document.createElement("td");
+                    const salaryTd = document.createElement("td");
+                    const rolesTd = document.createElement("td");
+                    const ageTd = document.createElement("td");
+
+                    nameTd.innerText = data.name;
+                    designationTd.innerText = data.designation;
+                    salaryTd.innerText = data.salary;
+                    rolesTd.innerText = data.roles.join(", ");
+                    ageTd.innerText = data.age;
+
+                    tr.appendChild(nameTd);
+                    tr.appendChild(designationTd);
+                    tr.appendChild(salaryTd);
+                    tr.appendChild(rolesTd);
+                    tr.appendChild(ageTd);
+                    results.appendChild(tr);
+                })
+                .catch((error) => {  document.querySelector("#not-found").style.display = "block"; console.error(error) });
+        }
+
+        function fetchAllEmployees() {
+            fetch(`http://localhost:8000/api/get/employee`)
+                .then((response) => response.json())
+                .then((data) => {
+                    const results = document.querySelector("#results tbody");
+                    results.innerHTML = "";
+                    if (data.length > 0) {
+                        data.forEach((employee) => {
+                            const row = document.createElement("tr");
+                            row.innerHTML = `
+                            <td>${employee.name}</td>
+                            <td>${employee.designation}</td>
+                            <td>${employee.salary}</td>
+                            <td>${employee.roles.join(", ")}</td>
+                            <td>${employee.age}</td>
+                            `;
+                            results.appendChild(row);
+                        });
+                        document.querySelector("#not-found").style.display = "none";
+                    } else {
+                        document.querySelector("#not-found").style.display = "block";
+                    }
+                })
+                .catch((error) => console.error(error));
+        }
+    </script>
+</body>
+
+</html>
+
